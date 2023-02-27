@@ -13,7 +13,7 @@ export class XeroAuthApi implements ICredentialType {
 
 	extends = ['oAuth2Api'];
 
-	displayName = 'Xero OAuth2 API';
+	displayName = 'Xero Auth API';
 
 	documentationUrl = 'xero';
 
