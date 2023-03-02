@@ -13,8 +13,8 @@ import { xeroApiRequest } from './GenericFunctions';
 
 export class Xero implements INodeType {
 	description: INodeTypeDescription = {
-		displayName: 'Xero',
-		name: 'xero',
+		displayName: 'Xero Config',
+		name: 'xeroClout',
 		icon: 'file:xero.svg',
 		group: ['output'],
 		version: 1,

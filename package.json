@@ -33,7 +33,8 @@
       "dist/credentials/XeroAuthApi.credentials.js"
     ],
     "nodes": [
-      "dist/nodes/Xero/Xero.node.js"
+      "dist/nodes/Xero/Xero.node.js",
+      "dist/nodes/ReadPdf/ReadPDF.node.js"
     ]
   },
   "devDependencies": {
@@ -46,5 +47,8 @@
     "n8n-workflow": "*",
     "prettier": "^2.7.1",
     "typescript": "~4.8.4"
+  },
+  "dependencies": {
+    "pdf.js-extract": "^0.2.1"
   }
 }
