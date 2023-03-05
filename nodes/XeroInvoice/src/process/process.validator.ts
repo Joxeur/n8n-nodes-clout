@@ -1,4 +1,4 @@
-import {Input} from './models';
+import {Input} from '../model/models';
 
 export class ProcessValidator {
 

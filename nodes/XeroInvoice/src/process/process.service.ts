@@ -1,5 +1,5 @@
-import {Input, Output} from './models';
-import {XeroRepository} from './xero.repository';
+import {Input, Output} from '../model/models';
+import {XeroRepository} from '../repository/xero.repository';
 import {ProcessHelpers} from './process.helpers';
 import {ProcessValidator} from './process.validator';
 

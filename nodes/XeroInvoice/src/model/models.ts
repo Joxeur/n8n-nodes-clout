@@ -21,13 +21,6 @@ export interface Output {
 	invoiceId: string
 }
 
-export interface XeroSecurityConfig {
-	clientId: string;
-	clientSecret: string;
-	grantType?: string;
-	scopes?: string[];
-}
-
 export interface Tenant {
 	tenantName: string;
 	tenantId: string;

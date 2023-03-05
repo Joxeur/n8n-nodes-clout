@@ -1,8 +1,8 @@
 import {BrandingTheme} from 'xero-node/dist/gen/model/accounting/brandingTheme';
-import {Input, Output} from './models';
-import {ProcessService} from './process.service';
-import {XeroRepository} from './xero.repository';
-import {TokenProvider} from './token.provider';
+import {Input, Output} from './model/models';
+import {ProcessService} from './process/process.service';
+import {XeroRepository} from './repository/xero.repository';
+import {TokenProvider} from './repository/token.provider';
 
 export class NodeService {
 

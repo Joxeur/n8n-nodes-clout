@@ -1,9 +1,9 @@
-import {NodeService} from './service/node.service';
+import {NodeService} from './src/node.service';
 import {ILoadOptionsFunctions, INodeExecutionData, INodePropertyOptions, NodeOperationError} from 'n8n-workflow';
 import {IExecuteFunctions} from 'n8n-core';
 import {OptionsWithUri} from 'request';
-import {Tenant} from './service/models';
-import {TokenProvider} from './service/token.provider';
+import {Tenant} from './src/model/models';
+import {TokenProvider} from './src/repository/token.provider';
 
 export class NodeUtils {
 
@@ -20,8 +20,7 @@ export class NodeUtils {
 			uri: 'https://api.xero.com/connections',
 			json: true,
 		};
-		const result = await context.helpers.requestOAuth2.call(context, 'xeroAuthApi', options);
-		return result;
+		return await context.helpers.requestOAuth2.call(context, 'xeroAuthApi', options);
 	}
 
 	static buildNodeService(context: IExecuteFunctions | ILoadOptionsFunctions, tenantId: string): NodeService {
@@ -66,7 +65,6 @@ export class NodeUtils {
 			);
 		}
 
-		// return Buffer.from(itemBinaryData.data, BINARY_ENCODING);
 		return await this.helpers.getBinaryDataBuffer(itemIndex, dataPropertyName);
 	}
 

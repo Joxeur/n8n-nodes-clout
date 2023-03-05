@@ -1,4 +1,4 @@
-import {ReportEntry, ReportEntryItem} from './models';
+import {ReportEntry, ReportEntryItem} from '../model/models';
 import {TrackingCategory} from 'xero-node/dist/gen/model/accounting/trackingCategory';
 import {Contact, Invoice} from 'xero-node';
 import {LineAmountTypes} from 'xero-node/dist/gen/model/accounting/lineAmountTypes';

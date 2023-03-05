@@ -1,9 +1,5 @@
 import type { IExecuteFunctions } from 'n8n-core';
 
-/*import {
-	LoggerProxy as Logger
-} from 'n8n-workflow';*/
-
 import type {
 	ILoadOptionsFunctions,
 	INodeExecutionData,
@@ -13,7 +9,7 @@ import type {
 	JsonObject,
 } from 'n8n-workflow';
 import {NodeUtils} from './node.utils';
-import {ReportEntry} from './service/models';
+import {ReportEntry} from './src/model/models';
 
 export class XeroInvoice implements INodeType {
 	description: INodeTypeDescription = {
