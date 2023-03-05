@@ -2,14 +2,15 @@ import {BrandingTheme} from 'xero-node/dist/gen/model/accounting/brandingTheme';
 import {Input, Output} from './models';
 import {ProcessService} from './process.service';
 import {XeroRepository} from './xero.repository';
+import {TokenProvider} from './token.provider';
 
 export class NodeService {
 
 	private xeroRepository: XeroRepository;
 	private processService: ProcessService;
 
-	constructor(access_token: string, tenant?: string) {
-		this.xeroRepository = new XeroRepository(access_token, tenant);
+	constructor(tokenProvider: TokenProvider, tenant?: string) {
+		this.xeroRepository = new XeroRepository(tokenProvider, tenant);
 		this.processService = new ProcessService(this.xeroRepository);
 	}
 

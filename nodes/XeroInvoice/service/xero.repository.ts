@@ -3,123 +3,111 @@ import {Contact, Invoice, XeroClient} from 'xero-node';
 import {TrackingCategory} from 'xero-node/dist/gen/model/accounting/trackingCategory';
 import {Item} from 'xero-node/dist/gen/model/accounting/item';
 import {Attachment} from 'xero-node/dist/gen/model/accounting/attachment';
+import {TokenProvider} from './token.provider';
 const { Readable } = require('stream');
-
-const TOKEN_EXPIRE_MARGIN_IN_SEC: number = 30;
 
 export class XeroRepository {
 
 	private _tenant?: string;
-	private _xero: XeroClient;
+	private xeroClient: XeroClient;
 
-	constructor(access_token: string, tenant?: string) {
-		this._xero = new XeroClient({clientId: '', clientSecret: ''});
+	constructor(private tokenProvider: TokenProvider, tenant?: string) {
+		this.xeroClient = new XeroClient({clientId: '', clientSecret: ''});
 		this._tenant = tenant;
+	}
 
-		this._xero.setTokenSet({access_token});
+	private setToken(access_token: string): void {
+		this.xeroClient.setTokenSet({access_token});
 	}
 
 	public setTenant(tenant: string): void {
 		this._tenant = tenant;
 	}
 
-	public async getXeroClient(): Promise<XeroClient> {
-		await this._xero.initialize();
-
-		const tokenSet = this._xero.readTokenSet();
-
-		if (!tokenSet.expires_at || tokenSet.expires_at < (new Date().getTime() / 1000) + TOKEN_EXPIRE_MARGIN_IN_SEC) {
-			const newTokenSet = await this._xero.refreshToken();
-			console.log("newTokenSet", newTokenSet);
-		}
-
-		return this._xero;
-	}
-
 	public async getTenants(): Promise<any[]> {
-		const xeroClient = await this.getXeroClient();
-		const result = await xeroClient.updateTenants(false) || [];
-		return result;
+		return this.handleToken(async () => {
+			return await this.xeroClient.updateTenants(false) || [];
+		});
 	}
 
 	public async getBrandingThemes(): Promise<BrandingTheme[]> {
 		this.checkTenant();
 
-		const xeroClient = await this.getXeroClient();
+		return this.handleToken(async () => {
+			const result = await this.xeroClient.accountingApi.getBrandingThemes(this._tenant!);
 
-		const result = await xeroClient.accountingApi.getBrandingThemes(this._tenant!);
-
-		return result.body.brandingThemes ?? [];
+			return result.body.brandingThemes ?? [];
+		});
 	}
 
 	public async getDepartments(): Promise<TrackingCategory> {
 		this.checkTenant();
 
-		const xeroClient = await this.getXeroClient();
+		return this.handleToken(async () => {
+			const result = await this.xeroClient.accountingApi.getTrackingCategories(this._tenant!, `Name="Department" && Status="ACTIVE"`);
 
-		const result = await xeroClient.accountingApi.getTrackingCategories(this._tenant!, `Name="Department" && Status="ACTIVE"`);
-
-		return this.getExactlyOne(result.body.trackingCategories ?? []);
+			return this.getExactlyOne(result.body.trackingCategories ?? []);
+		});
 	}
 
 	public async getItemByCode(code: string): Promise<Item> {
 		this.checkTenant();
 
-		const xeroClient = await this.getXeroClient();
+		return this.handleToken(async () => {
+			const result = await this.xeroClient.accountingApi.getItems(this._tenant!, undefined, `code="${code}"`);
 
-		const result = await xeroClient.accountingApi.getItems(this._tenant!, undefined, `code="${code}"`);
-
-		return this.getExactlyOne(result.body.items ?? []);
+			return this.getExactlyOne(result.body.items ?? []);
+		});
 	}
 
 	public async getContactForFirma(firma: string): Promise<Contact> {
 		this.checkTenant();
 
-		const xeroClient = await this.getXeroClient();
+		return this.handleToken(async () => {
+			const result = await this.xeroClient.accountingApi.getContacts(this._tenant!, undefined, `Name.ToUpper().Contains("${firma.toUpperCase()}")`);
 
-		const result = await xeroClient.accountingApi.getContacts(this._tenant!, undefined, `Name.ToUpper().Contains("${firma.toUpperCase()}")`);
-
-		return this.getExactlyOne(result.body.contacts ?? []);
+			return this.getExactlyOne(result.body.contacts ?? []);
+		});
 	}
 
 	public async getDraftInvoicesForContactID(contactId: string): Promise<Invoice[]> {
 		this.checkTenant();
 
-		const xeroClient = await this.getXeroClient();
+		return this.handleToken(async () => {
+			const result = await this.xeroClient.accountingApi.getInvoices(this._tenant!, undefined, undefined, undefined, undefined, undefined, [contactId], ['Draft']);
 
-		const result = await xeroClient.accountingApi.getInvoices(this._tenant!, undefined, undefined, undefined, undefined, undefined, [contactId], ['Draft']);
-
-		return result.body.invoices ?? [];
+			return result.body.invoices ?? [];
+		});
 	}
 
 	public async updateInvoice(invoiceId: string, invoice: Invoice): Promise<Invoice> {
 		this.checkTenant();
 
-		const xeroClient = await this.getXeroClient();
+		return this.handleToken(async () => {
+			const result = await this.xeroClient.accountingApi.updateInvoice(this._tenant!, invoiceId, {invoices: [invoice]});
 
-		const result = await xeroClient.accountingApi.updateInvoice(this._tenant!, invoiceId, {invoices: [invoice]});
-
-		return this.getExactlyOne(result.body.invoices ?? []);
+			return this.getExactlyOne(result.body.invoices ?? []);
+		});
 	}
 
 	public async createInvoice(invoice: Invoice): Promise<Invoice> {
 		this.checkTenant();
 
-		const xeroClient = await this.getXeroClient();
+		return this.handleToken(async () => {
+			const result = await this.xeroClient.accountingApi.createInvoices(this._tenant!, {invoices: [invoice]});
 
-		const result = await xeroClient.accountingApi.createInvoices(this._tenant!, {invoices: [invoice]});
-
-		return this.getExactlyOne(result.body.invoices ?? []);
+			return this.getExactlyOne(result.body.invoices ?? []);
+		});
 	}
 
 	public async createInvoiceAttachment(invoiceId: string, fileName: string, body: Buffer): Promise<Attachment[]> {
 		this.checkTenant();
 
-		const xeroClient = await this.getXeroClient();
+		return this.handleToken(async () => {
+			const result = await this.xeroClient.accountingApi.createInvoiceAttachmentByFileName(this._tenant!, invoiceId, fileName, Readable.from(body), true);
 
-		const result = await xeroClient.accountingApi.createInvoiceAttachmentByFileName(this._tenant!, invoiceId, fileName, Readable.from(body), true);
-
-		return result.body.attachments ?? [];
+			return result.body.attachments ?? [];
+		});
 	}
 
 	private checkTenant(): void {
@@ -136,5 +124,27 @@ export class XeroRepository {
 			throw new Error(`More than one ${itemName ?? 'element'} has been found`);
 		}
 		return items[0];
+	}
+
+	private async handleToken<T>(callback: () => Promise<T>): Promise<T> {
+		return await this.handleTokenRecursive(callback, 1);
+	}
+
+	private async handleTokenRecursive<T>(callback: () => Promise<T>, retry: number): Promise<T> {
+		this.setToken(await this.tokenProvider.getToken());
+
+		try {
+			return await callback();
+		} catch (e: any) {
+			if (e?.response?.statusCode === 401 && retry !== 0) {
+				console.log("Refreshing token");
+				this.setToken(await this.tokenProvider.refresh());
+				return await this.handleTokenRecursive(callback, retry - 1);
+			}
+
+			console.log("Error", e);
+
+			throw e;
+		}
 	}
 }

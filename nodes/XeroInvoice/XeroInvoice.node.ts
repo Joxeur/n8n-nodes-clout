@@ -75,15 +75,7 @@ export class XeroInvoice implements INodeType {
 			// Get all the tenants to display them to user so that he can
 			// select them easily
 			async getTenants(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
-				const credentials = await this.getCredentials('xeroAuthApi');
-
-				console.log("getTenants", credentials);
-
-				const xeroService = await NodeUtils.buildNodeService(credentials);
-
-				const tenants = await xeroService.getTenants();
-
-				console.log("tenants", tenants);
+				const tenants = await NodeUtils.getTenants(this);
 
 				return NodeUtils.toPropertyOptions(tenants, (tenant) => tenant.tenantName, (tenant) => tenant.tenantId);
 			},
@@ -94,9 +86,7 @@ export class XeroInvoice implements INodeType {
 					return [];
 				}
 
-				const credentials = await this.getCredentials('xeroAuthApi');
-
-				const xeroService = await NodeUtils.buildNodeService(credentials, tenantId);
+				const xeroService = await NodeUtils.buildNodeService(this, tenantId);
 
 				const themes = await xeroService.getBrandingThemes();
 
@@ -116,9 +106,7 @@ export class XeroInvoice implements INodeType {
 				const dataPropertyName = this.getNodeParameter('dataPropertyName', i) as string;
 				const brandingTheme = this.getNodeParameter('brandingTheme', i) as string;
 
-				const credentials = await this.getCredentials('xeroAuthApi', i);
-
-				const xeroService = await NodeUtils.buildNodeService(credentials, tenantId);
+				const xeroService = await NodeUtils.buildNodeService(this, tenantId);
 
 				const report = items[i].json as unknown as ReportEntry;
 				responseData = {
