@@ -11,7 +11,7 @@ import type {
 
 import { xeroApiRequest } from './GenericFunctions';
 
-export class Xero implements INodeType {
+export class XeroConfig implements INodeType {
 	description: INodeTypeDescription = {
 		displayName: 'Xero Config',
 		name: 'xeroClout',
@@ -240,10 +240,10 @@ export class Xero implements INodeType {
 			try {
 				responseData = {
 					tenantId: this.getNodeParameter('tenantId', i) as string,
-					brandingTheme: this.getNodeParameter('brandingTheme', i) as string,
-					taxRate: this.getNodeParameter('taxRate', i) as string,
-					accountCode: this.getNodeParameter('accountCode', i) as string,
-					currency: this.getNodeParameter('currency', i) as string,
+					brandingTheme: this.getNodeParameter('brandingTheme', i, '') as string,
+					taxRate: this.getNodeParameter('taxRate', i, '') as string,
+					accountCode: this.getNodeParameter('accountCode', i, '') as string,
+					currency: this.getNodeParameter('currency', i, '') as string,
 				};
 
 				const executionData = this.helpers.constructExecutionMetaData(
