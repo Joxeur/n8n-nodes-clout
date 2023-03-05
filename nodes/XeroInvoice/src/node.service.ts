@@ -19,30 +19,15 @@ export class NodeService {
 	}
 
 	public async getTenants(): Promise<any[]> {
-		return this.safeAsync(async () => {
-			return await this.xeroRepository.getTenants() || [];
-		}, []);
+		return await this.xeroRepository.getTenants() || [];
 	}
 
 	public async getBrandingThemes(): Promise<BrandingTheme[]> {
-		return this.safeAsync(async () => {
-			return await this.xeroRepository.getBrandingThemes();
-		}, []);
+		return await this.xeroRepository.getBrandingThemes() || [];
 	}
 
-	public async process(input: Input, attachment: Buffer): Promise<Output | undefined> {
-		return this.safeAsync(async () => {
-			return await this.processService.process(input, attachment);
-		}, undefined);
-	}
-
-	private async safeAsync<T>(callback: () => Promise<T>, defaultValue: T): Promise<T> {
-		try {
-			return await callback();
-		} catch (e: any) {
-			console.error("Error during execution", e);
-		}
-		return defaultValue;
+	public async process(input: Input, attachment: Buffer): Promise<Output> {
+		return await this.processService.process(input, attachment);
 	}
 
 }

@@ -46,7 +46,7 @@ export class XeroRepository {
 		return this.handleToken(async () => {
 			const result = await this.xeroClient.accountingApi.getTrackingCategories(this._tenant!, `Name="Department" && Status="ACTIVE"`);
 
-			return this.getExactlyOne(result.body.trackingCategories ?? []);
+			return this.getExactlyOne(result.body.trackingCategories ?? [], 'Department');
 		});
 	}
 
@@ -56,7 +56,7 @@ export class XeroRepository {
 		return this.handleToken(async () => {
 			const result = await this.xeroClient.accountingApi.getItems(this._tenant!, undefined, `code="${code}"`);
 
-			return this.getExactlyOne(result.body.items ?? []);
+			return this.getExactlyOne(result.body.items ?? [], 'Item', {code});
 		});
 	}
 
@@ -66,7 +66,7 @@ export class XeroRepository {
 		return this.handleToken(async () => {
 			const result = await this.xeroClient.accountingApi.getContacts(this._tenant!, undefined, `Name.ToUpper().Contains("${firma.toUpperCase()}")`);
 
-			return this.getExactlyOne(result.body.contacts ?? []);
+			return this.getExactlyOne(result.body.contacts ?? [], 'Contact', {firma});
 		});
 	}
 
@@ -86,7 +86,7 @@ export class XeroRepository {
 		return this.handleToken(async () => {
 			const result = await this.xeroClient.accountingApi.updateInvoice(this._tenant!, invoiceId, {invoices: [invoice]});
 
-			return this.getExactlyOne(result.body.invoices ?? []);
+			return this.getExactlyOne(result.body.invoices ?? [], 'Invoice', {invoiceId});
 		});
 	}
 
@@ -96,7 +96,7 @@ export class XeroRepository {
 		return this.handleToken(async () => {
 			const result = await this.xeroClient.accountingApi.createInvoices(this._tenant!, {invoices: [invoice]});
 
-			return this.getExactlyOne(result.body.invoices ?? []);
+			return this.getExactlyOne(result.body.invoices ?? [], 'Invoice');
 		});
 	}
 
@@ -116,12 +116,12 @@ export class XeroRepository {
 		}
 	}
 
-	private getExactlyOne<T>(items: T[], itemName?: string): T {
+	private getExactlyOne<T>(items: T[], itemName?: string, context?: any): T {
 		if (!items || items.length === 0) {
-			throw new Error(`No ${itemName ?? 'element'} has been found`);
+			throw new Error(`No ${itemName ?? 'element'} has been found. ${context ? JSON.stringify(context) : ''}`);
 		}
 		if (items?.length > 1) {
-			throw new Error(`More than one ${itemName ?? 'element'} has been found`);
+			throw new Error(`More than one ${itemName ?? 'element'} has been found. ${context ? JSON.stringify(context) : ''}`);
 		}
 		return items[0];
 	}

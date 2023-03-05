@@ -24,7 +24,8 @@ export class XeroInvoice implements INodeType {
 			name: 'Xero',
 		},
 		inputs: ['main'],
-		outputs: ['main'],
+		outputs: ['main', 'main'],
+		outputNames: ['data', 'error'],
 		credentials: [
 			{
 				name: 'xeroAuthApi',
@@ -93,7 +94,7 @@ export class XeroInvoice implements INodeType {
 
 	async execute(this: IExecuteFunctions): Promise<INodeExecutionData[][]> {
 		const items = this.getInputData();
-		const returnData: INodeExecutionData[] = [];
+		const returnData: INodeExecutionData[][] = [[], []];
 		const length = items.length;
 		let responseData;
 		for (let i = 0; i < length; i++) {
@@ -113,15 +114,12 @@ export class XeroInvoice implements INodeType {
 					this.helpers.returnJsonArray(responseData),
 					{ itemData: { item: i } },
 				);
-				returnData.push(...executionData);
+				returnData[0].push(...executionData);
 			} catch (error) {
-				if (this.continueOnFail()) {
-					returnData.push({ json: { error: (error as JsonObject).message } });
-					continue;
-				}
-				throw error;
+				returnData[1].push({ json: { error: (error as JsonObject).message } });
+				console.error("Unhandled error: ", error);
 			}
 		}
-		return this.prepareOutputData(returnData);
+		return returnData;
 	}
 }
