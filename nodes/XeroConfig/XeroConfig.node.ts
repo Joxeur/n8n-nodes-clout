@@ -11,6 +11,27 @@ import type {
 
 import { xeroApiRequest } from './GenericFunctions';
 
+async function getTenants(this: ILoadOptionsFunctions | IExecuteFunctions): Promise<INodePropertyOptions[]> {
+	const returnData: INodePropertyOptions[] = [];
+	const tenants = await xeroApiRequest.call(
+		this,
+		'GET',
+		'',
+		{},
+		{},
+		'https://api.xero.com/connections',
+	);
+	for (const tenant of tenants) {
+		const tenantName = tenant.tenantName;
+		const tenantId = tenant.tenantId;
+		returnData.push({
+			name: tenantName,
+			value: tenantId,
+		});
+	}
+	return returnData;
+}
+
 export class XeroConfig implements INodeType {
 	description: INodeTypeDescription = {
 		displayName: 'Xero Config',
@@ -138,7 +159,14 @@ export class XeroConfig implements INodeType {
 				},
 				default: '',
 				required: false,
-			}
+			},
+			{
+				displayName: 'Show credentials',
+				name: 'showCredentials',
+				type: 'boolean',
+				default: false,
+				noDataExpression: true
+			},
 		],
 	};
 
@@ -146,26 +174,7 @@ export class XeroConfig implements INodeType {
 		loadOptions: {
 			// Get all the tenants to display them to user so that he can
 			// select them easily
-			async getTenants(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
-				const returnData: INodePropertyOptions[] = [];
-				const tenants = await xeroApiRequest.call(
-					this,
-					'GET',
-					'',
-					{},
-					{},
-					'https://api.xero.com/connections',
-				);
-				for (const tenant of tenants) {
-					const tenantName = tenant.tenantName;
-					const tenantId = tenant.tenantId;
-					returnData.push({
-						name: tenantName,
-						value: tenantId,
-					});
-				}
-				return returnData;
-			},
+			getTenants,
 			async getBrandingThemes(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
 				const tenantId = this.getCurrentNodeParameter('tenantId');
 				const returnData: INodePropertyOptions[] = [];
@@ -238,12 +247,21 @@ export class XeroConfig implements INodeType {
 		let responseData;
 		for (let i = 0; i < length; i++) {
 			try {
+				let credentials = {};
+				if (this.getNodeParameter('showCredentials', i)) {
+					// Force a call to refresh token if needed
+					await getTenants.call(this);
+					const rawCredentials = await this.getCredentials('xeroAuthApi') as any;
+					credentials = {access_token: rawCredentials.oauthTokenData.access_token}
+				}
+
 				responseData = {
 					tenantId: this.getNodeParameter('tenantId', i) as string,
 					brandingTheme: this.getNodeParameter('brandingTheme', i, '') as string,
 					taxRate: this.getNodeParameter('taxRate', i, '') as string,
 					accountCode: this.getNodeParameter('accountCode', i, '') as string,
 					currency: this.getNodeParameter('currency', i, '') as string,
+					...credentials
 				};
 
 				const executionData = this.helpers.constructExecutionMetaData(

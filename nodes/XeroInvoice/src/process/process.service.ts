@@ -19,6 +19,9 @@ export class ProcessService {
 		// Find Department
 		const departments = await this.xero.getDepartments();
 		const department = ProcessHelpers.findDepartment(departments, input.report.employee);
+		if (!department) {
+			throw new Error('No department found for ' + input.report.employee);
+		}
 
 		// Find contact
 		const contact = await this.xero.getContactForFirma(input.report.firma);

@@ -5,6 +5,7 @@ import {LineAmountTypes} from 'xero-node/dist/gen/model/accounting/lineAmountTyp
 import {LineItem} from 'xero-node/dist/gen/model/accounting/lineItem';
 import {CurrencyCode} from 'xero-node/dist/gen/model/accounting/currencyCode';
 import {Item} from 'xero-node/dist/gen/model/accounting/item';
+import {LineItemTracking} from 'xero-node/dist/gen/model/accounting/lineItemTracking';
 
 export class ProcessHelpers {
 
@@ -12,7 +13,7 @@ export class ProcessHelpers {
 		return `${reportEntry.orderNr}-${reportEntry.position ?? 'pikett'}`;
 	}
 
-	static findDepartment(trackingCategory: TrackingCategory, employeeName: string): any | undefined {
+	static findDepartment(trackingCategory: TrackingCategory, employeeName: string): LineItemTracking | undefined {
 		function matchName(optionName: string, employeeName: string) {
 			const words = employeeName.split(/\s+/);
 			for (let word of words) {
@@ -26,10 +27,10 @@ export class ProcessHelpers {
 		for (let option of trackingCategory.options ?? []) {
 			if (matchName(option.name ?? '', employeeName)) {
 				return {
-					Name: trackingCategory.name,
-					Option: option.name,
-					TrackingCategoryID: trackingCategory.trackingCategoryID,
-					TrackingOptionID: option.trackingOptionID
+					name: trackingCategory.name,
+					option: option.name,
+					trackingCategoryID: trackingCategory.trackingCategoryID,
+					trackingOptionID: option.trackingOptionID
 				};
 			}
 		}
