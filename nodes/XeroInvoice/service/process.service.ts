@@ -47,7 +47,7 @@ export class ProcessService {
 
 		// Add attachment
 		const filename = ProcessHelpers.computeFileName(input.report);
-		await this.xero.createInvoiceAttachment(newInvoice.invoiceID!, filename, attachment);
+		await this.xero.createInvoiceAttachment(newInvoice.invoiceID!, filename, attachment, true);
 
 		return {
 			invoiceId: newInvoice.invoiceID!

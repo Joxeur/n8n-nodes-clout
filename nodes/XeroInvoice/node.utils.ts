@@ -1,8 +1,19 @@
 import {TokenSetParameters} from 'openid-client';
 import {NodeService} from './service/node.service';
-import {INodeExecutionData, INodePropertyOptions, NodeOperationError} from 'n8n-workflow';
+import {
+	ILoadOptionsFunctions,
+	INodeExecutionData,
+	INodePropertyOptions,
+	JsonObject,
+	NodeApiError,
+	NodeOperationError
+} from 'n8n-workflow';
 import {IExecuteFunctions} from 'n8n-core';
 import {XeroSecurityConfig} from './service/models';
+import {RequestHandler} from './request.handler';
+import {OptionsWithUri} from 'request';
+import {RequestPromiseOptions} from 'request-promise-native';
+import {IExecuteFunctions as IExecuteFunctionsBase} from 'n8n-workflow/dist/Interfaces';
 
 export class NodeUtils {
 
@@ -24,11 +35,17 @@ export class NodeUtils {
 		};
 	}
 
-	static async buildXeroService(credentials: any, tenantId?: string): Promise<NodeService> {
-		const xeroConfig = NodeUtils.toXeroConfig(credentials);
-		const xeroTokenSet = NodeUtils.toXeroTokenSet(credentials);
+	static buildNodeService(context: IExecuteFunctionsBase | ILoadOptionsFunctions, tenantId?: string): NodeService {
+		const requestHandler: RequestHandler = {
+			perform(options: OptionsWithUri | RequestPromiseOptions): Promise<any> {
+				return context.helpers.requestOAuth2.call(context, 'xeroAuthApi', options);
+			},
+			buildError(error: any): Error {
+				return new NodeApiError(context.getNode(), error as JsonObject);;
+			}
+		}
 
-		return new NodeService(xeroConfig, xeroTokenSet, tenantId);
+		return new NodeService(requestHandler, tenantId);
 	}
 
 	static toPropertyOptions<T>(items: T[], keyMap: (t: T) => string, valueMap: (t: T) => string | number): INodePropertyOptions[] {

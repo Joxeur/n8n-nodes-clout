@@ -75,13 +75,9 @@ export class XeroInvoice implements INodeType {
 			// Get all the tenants to display them to user so that he can
 			// select them easily
 			async getTenants(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
-				const credentials = await this.getCredentials('xeroAuthApi');
+				const nodeService = NodeUtils.buildNodeService(this);
 
-				console.log("getTenants", credentials);
-
-				const xeroService = await NodeUtils.buildXeroService(credentials);
-
-				const tenants = await xeroService.getTenants();
+				const tenants = await nodeService.getTenants();
 
 				console.log("tenants", tenants);
 
@@ -94,11 +90,9 @@ export class XeroInvoice implements INodeType {
 					return [];
 				}
 
-				const credentials = await this.getCredentials('xeroAuthApi');
+				const nodeService = NodeUtils.buildNodeService(this, tenantId);
 
-				const xeroService = await NodeUtils.buildXeroService(credentials, tenantId);
-
-				const themes = await xeroService.getBrandingThemes();
+				const themes = await nodeService.getBrandingThemes();
 
 				return NodeUtils.toPropertyOptions(themes, (theme) => theme.name!, (theme) => theme.brandingThemeID!);
 			}
@@ -116,13 +110,11 @@ export class XeroInvoice implements INodeType {
 				const dataPropertyName = this.getNodeParameter('dataPropertyName', i) as string;
 				const brandingTheme = this.getNodeParameter('brandingTheme', i) as string;
 
-				const credentials = await this.getCredentials('xeroAuthApi', i);
-
-				const xeroService = await NodeUtils.buildXeroService(credentials, tenantId);
+				const nodeService = await NodeUtils.buildNodeService(this, tenantId);
 
 				const report = items[i].json as unknown as ReportEntry;
 				responseData = {
-					...(await xeroService.process({brandingTheme, report}, await NodeUtils.getBuffer.call(this, items[i], i, dataPropertyName)))
+					...(await nodeService.process({brandingTheme, report}, await NodeUtils.getBuffer.call(this, items[i], i, dataPropertyName)))
 				};
 
 				const executionData = this.helpers.constructExecutionMetaData(

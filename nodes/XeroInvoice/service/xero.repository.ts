@@ -1,55 +1,40 @@
-import {XeroSecurityConfig} from './models';
-import {TokenSetParameters} from 'openid-client';
 import {BrandingTheme} from 'xero-node/dist/gen/model/accounting/brandingTheme';
-import {Contact, Invoice, XeroClient} from 'xero-node';
+import {Contact, Invoice} from 'xero-node';
 import {TrackingCategory} from 'xero-node/dist/gen/model/accounting/trackingCategory';
 import {Item} from 'xero-node/dist/gen/model/accounting/item';
 import {Attachment} from 'xero-node/dist/gen/model/accounting/attachment';
-const { Readable } = require('stream');
+import {RequestHandler} from '../request.handler';
+import {XeroClient} from './xero.client';
 
-const TOKEN_EXPIRE_MARGIN_IN_SEC: number = 30;
+export interface Tenant {
+	tenantId: string;
+	tenantName: string;
+}
 
 export class XeroRepository {
 
 	private _tenant?: string;
-	private _xero: XeroClient;
+	private xeroClient: XeroClient;
 
-	constructor(config: XeroSecurityConfig, tokenSet: TokenSetParameters, tenant?: string) {
-		this._xero = new XeroClient(config);
+	constructor(requestHandler: RequestHandler, tenant?: string) {
 		this._tenant = tenant;
-
-		this._xero.setTokenSet(tokenSet);
+		this.xeroClient = new XeroClient(requestHandler);
 	}
 
 	public setTenant(tenant: string): void {
 		this._tenant = tenant;
 	}
 
-	public async getXeroClient(): Promise<XeroClient> {
-		await this._xero.initialize();
+	public async getTenants(): Promise<Tenant[]> {
+		const result = await this.xeroClient.xeroApiRequest('GET', 'https://api.xero.com/connections');
 
-		const tokenSet = this._xero.readTokenSet();
-
-		if (!tokenSet.expires_at || tokenSet.expires_at < (new Date().getTime() / 1000) + TOKEN_EXPIRE_MARGIN_IN_SEC) {
-			const newTokenSet = await this._xero.refreshToken();
-			console.log("newTokenSet", newTokenSet);
-		}
-
-		return this._xero;
-	}
-
-	public async getTenants(): Promise<any[]> {
-		const xeroClient = await this.getXeroClient();
-		const result = await xeroClient.updateTenants(false) || [];
-		return result;
+		return result.body;
 	}
 
 	public async getBrandingThemes(): Promise<BrandingTheme[]> {
 		this.checkTenant();
 
-		const xeroClient = await this.getXeroClient();
-
-		const result = await xeroClient.accountingApi.getBrandingThemes(this._tenant!);
+		const result = await this.xeroClient.xeroApiRequest('GET', 'BrandingThemes', this._tenant);
 
 		return result.body.brandingThemes ?? [];
 	}
@@ -57,9 +42,7 @@ export class XeroRepository {
 	public async getDepartments(): Promise<TrackingCategory> {
 		this.checkTenant();
 
-		const xeroClient = await this.getXeroClient();
-
-		const result = await xeroClient.accountingApi.getTrackingCategories(this._tenant!, `Name="Department" && Status="ACTIVE"`);
+		const result = await this.xeroClient.xeroApiRequest('GET', 'TrackingCategories', this._tenant, {}, {where: `Name="Department" && Status="ACTIVE"`});
 
 		return this.getExactlyOne(result.body.trackingCategories ?? []);
 	}
@@ -67,9 +50,7 @@ export class XeroRepository {
 	public async getItemByCode(code: string): Promise<Item> {
 		this.checkTenant();
 
-		const xeroClient = await this.getXeroClient();
-
-		const result = await xeroClient.accountingApi.getItems(this._tenant!, undefined, `code="${code}"`);
+		const result = await this.xeroClient.xeroApiRequest('GET', 'Items', this._tenant, {}, {where: `code="${code}"`});
 
 		return this.getExactlyOne(result.body.items ?? []);
 	}
@@ -77,9 +58,13 @@ export class XeroRepository {
 	public async getContactForFirma(firma: string): Promise<Contact> {
 		this.checkTenant();
 
-		const xeroClient = await this.getXeroClient();
-
-		const result = await xeroClient.accountingApi.getContacts(this._tenant!, undefined, `Name.ToUpper().Contains("${firma.toUpperCase()}")`);
+		const result = await this.xeroClient.xeroApiRequest(
+			'GET',
+			'Contacts',
+			this._tenant,
+			{},
+			{where: `Name.ToUpper().Contains("${firma.toUpperCase()}")`}
+		);
 
 		return this.getExactlyOne(result.body.contacts ?? []);
 	}
@@ -87,9 +72,13 @@ export class XeroRepository {
 	public async getDraftInvoicesForContactID(contactId: string): Promise<Invoice[]> {
 		this.checkTenant();
 
-		const xeroClient = await this.getXeroClient();
-
-		const result = await xeroClient.accountingApi.getInvoices(this._tenant!, undefined, undefined, undefined, undefined, undefined, [contactId], ['Draft']);
+		const result = await this.xeroClient.xeroApiRequest(
+			'GET',
+			'Invoices',
+			this._tenant,
+			{},
+			{ContactIDs: contactId, Statuses: 'Draft'}
+		);
 
 		return result.body.invoices ?? [];
 	}
@@ -97,9 +86,9 @@ export class XeroRepository {
 	public async updateInvoice(invoiceId: string, invoice: Invoice): Promise<Invoice> {
 		this.checkTenant();
 
-		const xeroClient = await this.getXeroClient();
-
-		const result = await xeroClient.accountingApi.updateInvoice(this._tenant!, invoiceId, {invoices: [invoice]});
+		const result = await this.xeroClient.xeroApiRequest(
+			'POST', `Invoices/${invoiceId}`, this._tenant, invoice
+		);
 
 		return this.getExactlyOne(result.body.invoices ?? []);
 	}
@@ -107,19 +96,24 @@ export class XeroRepository {
 	public async createInvoice(invoice: Invoice): Promise<Invoice> {
 		this.checkTenant();
 
-		const xeroClient = await this.getXeroClient();
-
-		const result = await xeroClient.accountingApi.createInvoices(this._tenant!, {invoices: [invoice]});
+		const result = await this.xeroClient.xeroApiRequest(
+			'PUT', `Invoices`, this._tenant, invoice
+		);
 
 		return this.getExactlyOne(result.body.invoices ?? []);
 	}
 
-	public async createInvoiceAttachment(invoiceId: string, fileName: string, body: Buffer): Promise<Attachment[]> {
+	public async createInvoiceAttachment(invoiceId: string, fileName: string, body: Buffer, includeOnline: boolean): Promise<Attachment[]> {
 		this.checkTenant();
 
-		const xeroClient = await this.getXeroClient();
-
-		const result = await xeroClient.accountingApi.createInvoiceAttachmentByFileName(this._tenant!, invoiceId, fileName, Readable.from(body), true);
+		const result = await this.xeroClient.xeroApiRequest(
+			'POST',
+			`Invoices/${invoiceId}/Attachments/${encodeURIComponent(fileName)}`,
+			this._tenant,
+			body,
+			{includeOnline},
+			{'Content-Type': 'application/octet-stream'}
+		);
 
 		return result.body.attachments ?? [];
 	}
