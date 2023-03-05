@@ -1,5 +1,3 @@
-import {XeroSecurityConfig} from './models';
-import {TokenSetParameters} from 'openid-client';
 import {BrandingTheme} from 'xero-node/dist/gen/model/accounting/brandingTheme';
 import {Contact, Invoice, XeroClient} from 'xero-node';
 import {TrackingCategory} from 'xero-node/dist/gen/model/accounting/trackingCategory';
@@ -14,11 +12,11 @@ export class XeroRepository {
 	private _tenant?: string;
 	private _xero: XeroClient;
 
-	constructor(config: XeroSecurityConfig, tokenSet: TokenSetParameters, tenant?: string) {
-		this._xero = new XeroClient(config);
+	constructor(access_token: string, tenant?: string) {
+		this._xero = new XeroClient({clientId: '', clientSecret: ''});
 		this._tenant = tenant;
 
-		this._xero.setTokenSet(tokenSet);
+		this._xero.setTokenSet({access_token});
 	}
 
 	public setTenant(tenant: string): void {

@@ -79,7 +79,7 @@ export class XeroInvoice implements INodeType {
 
 				console.log("getTenants", credentials);
 
-				const xeroService = await NodeUtils.buildXeroService(credentials);
+				const xeroService = await NodeUtils.buildNodeService(credentials);
 
 				const tenants = await xeroService.getTenants();
 
@@ -96,7 +96,7 @@ export class XeroInvoice implements INodeType {
 
 				const credentials = await this.getCredentials('xeroAuthApi');
 
-				const xeroService = await NodeUtils.buildXeroService(credentials, tenantId);
+				const xeroService = await NodeUtils.buildNodeService(credentials, tenantId);
 
 				const themes = await xeroService.getBrandingThemes();
 
@@ -118,7 +118,7 @@ export class XeroInvoice implements INodeType {
 
 				const credentials = await this.getCredentials('xeroAuthApi', i);
 
-				const xeroService = await NodeUtils.buildXeroService(credentials, tenantId);
+				const xeroService = await NodeUtils.buildNodeService(credentials, tenantId);
 
 				const report = items[i].json as unknown as ReportEntry;
 				responseData = {

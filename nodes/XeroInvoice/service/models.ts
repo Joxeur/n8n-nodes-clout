@@ -27,3 +27,8 @@ export interface XeroSecurityConfig {
 	grantType?: string;
 	scopes?: string[];
 }
+
+export interface Tenant {
+	tenantName: string;
+	tenantId: string;
+}

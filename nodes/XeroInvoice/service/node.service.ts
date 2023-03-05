@@ -1,6 +1,5 @@
-import {TokenSetParameters} from 'openid-client';
 import {BrandingTheme} from 'xero-node/dist/gen/model/accounting/brandingTheme';
-import {Input, Output, XeroSecurityConfig} from './models';
+import {Input, Output} from './models';
 import {ProcessService} from './process.service';
 import {XeroRepository} from './xero.repository';
 
@@ -9,8 +8,8 @@ export class NodeService {
 	private xeroRepository: XeroRepository;
 	private processService: ProcessService;
 
-	constructor(config: XeroSecurityConfig, tokenSet: TokenSetParameters, tenant?: string) {
-		this.xeroRepository = new XeroRepository(config, tokenSet, tenant);
+	constructor(access_token: string, tenant?: string) {
+		this.xeroRepository = new XeroRepository(access_token, tenant);
 		this.processService = new ProcessService(this.xeroRepository);
 	}
 
