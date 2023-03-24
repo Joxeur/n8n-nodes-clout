@@ -82,7 +82,7 @@ export class ProcessHelpers {
 		return invoice;
 	}
 
-	static buildInvoice(contact: Contact, lineItems: LineItem[], brandingTheme: string): Invoice {
+	static buildInvoice(contact: Contact, lineItems: LineItem[]): Invoice {
 		const reference = contact?.name?.replace(/[ \.\'']/, '_') + " - " + new Date().getMonth() + "-" + new Date().getFullYear();
 
 		return {
@@ -90,7 +90,6 @@ export class ProcessHelpers {
 			"reference": reference,
 			"prepayments": [],
 			"overpayments": [],
-			"brandingThemeID": brandingTheme,
 			"sentToContact": false,
 			"currencyRate": 1.0,
 			"totalDiscount": 0.00,

@@ -23,13 +23,7 @@ const nodeService = new NodeService(tokenProvider);
 
 	nodeService.setTenant(tenant.tenantId);
 
-	const brandingThemes = await nodeService.getBrandingThemes();
-	console.log("BrandingThemes: ", await nodeService.getBrandingThemes());
-
-	const brandingTheme = brandingThemes[0];
-
 	const report = {
-		brandingTheme: brandingTheme.brandingThemeID!,
 		report: {
 			"dateFrom": "13.02.2023",
 			"dateTo": "20.02.2023",

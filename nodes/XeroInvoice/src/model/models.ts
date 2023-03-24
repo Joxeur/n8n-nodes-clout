@@ -1,5 +1,4 @@
 export interface Input {
-	brandingTheme: string,
 	report: ReportEntry
 }
 

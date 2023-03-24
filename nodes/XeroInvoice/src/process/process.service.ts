@@ -40,7 +40,7 @@ export class ProcessService {
 		// Create or update invoice
 		let newInvoice;
 		if (invoices.length === 0) {
-			const invoice = ProcessHelpers.buildInvoice(contact, lineItems, input.brandingTheme);
+			const invoice = ProcessHelpers.buildInvoice(contact, lineItems);
 			newInvoice = await this.xero.createInvoice(invoice);
 		} else {
 			// Always take first one

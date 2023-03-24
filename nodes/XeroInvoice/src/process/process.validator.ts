@@ -3,8 +3,7 @@ import {Input} from '../model/models';
 export class ProcessValidator {
 
 	static validate(input: Input): boolean {
-		return !!input.brandingTheme
-			&& !!input.report
+		return !!input.report
 			&& !!input.report.firma
 			&& !!input.report.dateFrom
 			&& !!input.report.dateTo
