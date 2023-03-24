@@ -45,18 +45,6 @@ export class XeroInvoice implements INodeType {
 				required: true,
 			},
 			{
-				displayName: 'Branding Theme',
-				name: 'brandingTheme',
-				type: 'options',
-				noDataExpression: true,
-				typeOptions: {
-					loadOptionsDependsOn: ['tenantId'],
-					loadOptionsMethod: 'getBrandingThemes',
-				},
-				default: '',
-				required: false,
-			},
-			{
 				displayName: 'Property Name',
 				name: 'dataPropertyName',
 				type: 'string',
@@ -75,19 +63,6 @@ export class XeroInvoice implements INodeType {
 				const tenants = await NodeUtils.getTenants(this);
 
 				return NodeUtils.toPropertyOptions(tenants, (tenant) => tenant.tenantName, (tenant) => tenant.tenantId);
-			},
-			async getBrandingThemes(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
-				const tenantId = this.getCurrentNodeParameter('tenantId') as string;
-
-				if (!tenantId) {
-					return [];
-				}
-
-				const xeroService = await NodeUtils.buildNodeService(this, tenantId);
-
-				const themes = await xeroService.getBrandingThemes();
-
-				return NodeUtils.toPropertyOptions(themes, (theme) => theme.name!, (theme) => theme.brandingThemeID!);
 			}
 		},
 	};
@@ -101,13 +76,12 @@ export class XeroInvoice implements INodeType {
 			try {
 				const tenantId = this.getNodeParameter('tenantId', i) as string;
 				const dataPropertyName = this.getNodeParameter('dataPropertyName', i) as string;
-				const brandingTheme = this.getNodeParameter('brandingTheme', i) as string;
 
 				const xeroService = await NodeUtils.buildNodeService(this, tenantId);
 
 				const report = items[i].json as unknown as ReportEntry;
 				responseData = {
-					...(await xeroService.process({brandingTheme, report}, await NodeUtils.getBuffer.call(this, items[i], i, dataPropertyName)))
+					...(await xeroService.process({report}, await NodeUtils.getBuffer.call(this, items[i], i, dataPropertyName)))
 				};
 
 				const executionData = this.helpers.constructExecutionMetaData(
