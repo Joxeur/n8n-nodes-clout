@@ -100,7 +100,7 @@ export class ProcessHelpers {
 	}
 
 	static buildInvoice(contact: Contact, lineItems: LineItem[]): Invoice {
-		const reference = contact?.name?.replace(/[ \.\'']/, '_') + " - " + new Date().getMonth() + "-" + new Date().getFullYear();
+		const reference = contact?.name?.replace(/[ \.\'']/, '_') + "-" + new Date().getFullYear();
 
 		return {
 			"type": Invoice.TypeEnum.ACCREC,
