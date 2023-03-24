@@ -6,6 +6,7 @@ import {LineItem} from 'xero-node/dist/gen/model/accounting/lineItem';
 import {CurrencyCode} from 'xero-node/dist/gen/model/accounting/currencyCode';
 import {Item} from 'xero-node/dist/gen/model/accounting/item';
 import {LineItemTracking} from 'xero-node/dist/gen/model/accounting/lineItemTracking';
+import * as _ from 'lodash';
 
 export class ProcessHelpers {
 
@@ -40,17 +41,33 @@ export class ProcessHelpers {
 	static buildLineItem(item: Item, department: TrackingCategory, reportEntry: ReportEntry, reportEntryItem: ReportEntryItem): LineItem {
 		return {
 			"itemCode": item.code,
-			"description": `${reportEntry.employee} (${reportEntry.dateFrom}-${reportEntry.dateTo}) / ${reportEntryItem.position}`,
+			"description": `${reportEntry.employee} ${this.buildMonthRangeString(reportEntry)} / ${reportEntryItem.position}`,
 			"quantity": reportEntryItem.hoursWorked,
 			"item": item,
 			"tracking": [department]
 		};
 	}
 
-	static computeFileName(reportEntry: ReportEntry): string {
-		const itemsName = reportEntry.items.map(i => `${i.orderNr}-${i.position}`).join(',');
+	private static buildMonthRangeString(reportEntry: ReportEntry): string {
+		return _.chain([
+			this.extractMonthYear(reportEntry.dateFrom),
+			this.extractMonthYear(reportEntry.dateTo)
+		])
+		.uniq()
+		.compact()
+		.value()
+		.join('-');
+	}
 
-		return `${reportEntry.employee} (${reportEntry.dateFrom}-${reportEntry.dateTo}) [${itemsName}].pdf`;
+	private static extractMonthYear(date: string): string | undefined {
+		const matches = date?.match(/\d{1,2}\.(\d{1,2}\.\d{2,4})/) ?? [];
+		return matches?.[1];
+	}
+
+	static computeFileName(reportEntry: ReportEntry): string {
+		const itemsName = reportEntry.items.map(i => i.position).join(',');
+
+		return `${reportEntry.employee} ${this.buildMonthRangeString(reportEntry)} [${itemsName}].pdf`;
 	}
 
 	static updateInvoice(invoice: Invoice, lineItems: LineItem[]): Invoice {
