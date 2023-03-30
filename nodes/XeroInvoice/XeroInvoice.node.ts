@@ -37,7 +37,6 @@ export class XeroInvoice implements INodeType {
 				displayName: 'Tenant ID',
 				name: 'tenantId',
 				type: 'options',
-				noDataExpression: true,
 				typeOptions: {
 					loadOptionsMethod: 'getTenants',
 				},
