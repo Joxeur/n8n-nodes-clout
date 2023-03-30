@@ -41,7 +41,7 @@ export class ProcessHelpers {
 	static buildLineItem(item: Item, department: TrackingCategory, reportEntry: ReportEntry, reportEntryItem: ReportEntryItem): LineItem {
 		return {
 			"itemCode": item.code,
-			"description": `${reportEntry.employee} ${this.buildMonthRangeString(reportEntry)} / ${reportEntryItem.position}`,
+			"description": `${item.name} ${this.buildMonthRangeString(reportEntry)}`,
 			"quantity": reportEntryItem.hoursWorked,
 			"item": item,
 			"tracking": [department]
