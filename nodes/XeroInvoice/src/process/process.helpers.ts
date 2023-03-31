@@ -44,6 +44,7 @@ export class ProcessHelpers {
 			"description": `${item.name} ${this.buildMonthRangeString(reportEntry)}`,
 			"quantity": reportEntryItem.hoursWorked,
 			"item": item,
+			"taxType": item.salesDetails?.taxType,
 			"tracking": [department]
 		};
 	}
