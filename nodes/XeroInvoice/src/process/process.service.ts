@@ -35,12 +35,13 @@ export class ProcessService {
 		}
 
 		// Find invoice if one exists
-		const invoices = await this.xero.getDraftInvoicesForContactID(contact.contactID!);
+		const invoiceRef = ProcessHelpers.buildInvoiceRef(contact, input.report.employee);
+		const invoices = await this.xero.getDraftInvoicesForContactID(contact.contactID!, invoiceRef);
 
 		// Create or update invoice
 		let newInvoice;
 		if (invoices.length === 0) {
-			const invoice = ProcessHelpers.buildInvoice(contact, lineItems);
+			const invoice = ProcessHelpers.buildInvoice(contact, invoiceRef, lineItems);
 			newInvoice = await this.xero.createInvoice(invoice);
 		} else {
 			// Always take first one

@@ -100,12 +100,18 @@ export class ProcessHelpers {
 		return invoice;
 	}
 
-	static buildInvoice(contact: Contact, lineItems: LineItem[]): Invoice {
-		const reference = contact?.name?.replace(/[ \.\'']/, '_') + "-" + new Date().getFullYear();
+	static buildInvoiceRef(contact: Contact, employeeName: string): string {
+		return _.compact([
+			new Date().getFullYear(),
+			contact.name?.replace(/[ \.\'']/g, '_'),
+			employeeName.trim().replace(/\s+/g, '_')
+		]).join('-');
+	}
 
+	static buildInvoice(contact: Contact, invoiceRef: string, lineItems: LineItem[]): Invoice {
 		return {
 			"type": Invoice.TypeEnum.ACCREC,
-			"reference": reference,
+			"reference": invoiceRef,
 			"prepayments": [],
 			"overpayments": [],
 			"sentToContact": false,

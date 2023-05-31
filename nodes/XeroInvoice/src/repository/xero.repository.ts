@@ -70,11 +70,11 @@ export class XeroRepository {
 		});
 	}
 
-	public async getDraftInvoicesForContactID(contactId: string): Promise<Invoice[]> {
+	public async getDraftInvoicesForContactID(contactId: string, ref: string): Promise<Invoice[]> {
 		this.checkTenant();
 
 		return this.handleToken(async () => {
-			const result = await this.xeroClient.accountingApi.getInvoices(this._tenant!, undefined, undefined, undefined, undefined, undefined, [contactId], ['Draft']);
+			const result = await this.xeroClient.accountingApi.getInvoices(this._tenant!, undefined, `Reference.ToUpper().Equals("${ref.toUpperCase()}")`, undefined, undefined, undefined, [contactId], ['Draft']);
 
 			return result.body.invoices ?? [];
 		});
