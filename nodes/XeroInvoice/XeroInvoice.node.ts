@@ -11,13 +11,15 @@ import type {
 import {NodeUtils} from './node.utils';
 import {ReportEntry} from './src/model/models';
 
+const version = 2;
+
 export class XeroInvoice implements INodeType {
 	description: INodeTypeDescription = {
-		displayName: 'Xero Invoice',
+		displayName: `Xero Invoice (${version})`,
 		name: 'xeroInvoiceClout',
 		icon: 'file:xero.svg',
 		group: ['output'],
-		version: 1,
+		version: version,
 		subtitle: 'Create or update an invoice',
 		description: 'Consume Xero API',
 		defaults: {
