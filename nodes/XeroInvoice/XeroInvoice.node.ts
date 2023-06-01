@@ -20,7 +20,7 @@ export class XeroInvoice implements INodeType {
 		icon: 'file:xero.svg',
 		group: ['output'],
 		version: version,
-		subtitle: 'Create or update an invoice',
+		subtitle: `Import invoice (${version})`,
 		description: 'Consume Xero API',
 		defaults: {
 			name: 'Xero',
